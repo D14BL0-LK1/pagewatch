@@ -80,8 +80,11 @@
 
         <div class="form">
             <h3>¿Te interesa? Déjanos tu correo y te avisamos cuando PageWatch esté disponible.</h3>
-            <form id="waitlist-form">
-                <input type="email" placeholder="tu@email.com" required>
+            <form id="waitlist-form" action="https://formsubmit.co/lucioayalaoc@gmail.com" method="POST">
+                <input type="hidden" name="_subject" value="Nuevo suscriptor PageWatch">
+                <input type="hidden" name="_next" value="https://d14bl0-lk1.github.io/pagewatch/thanks.html">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="email" name="email" placeholder="tu@email.com" required>
                 <button type="submit">Avísame</button>
             </form>
             <p class="note">No spam. Solo te contactaremos para el lanzamiento y ofertas especiales.</p>
