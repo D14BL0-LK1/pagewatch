@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PageWatch Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f9fafb; color: #111827; line-height: 1.6; padding: 2rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2rem; }
+        h1 { color: #3b82f6; }
+        .card { background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .auth-section { display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; }
+        input { padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #d1d5db; flex: 1; }
+        button { padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        button:hover { background: #2563eb; }
+        .url-list { list-style: none; }
+        .url-item { padding: 1rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; }
+        .url-item:last-child { border-bottom: none; }
+        .status { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; }
+        .status-ok { background: #d1fae5; color: #065f46; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PageWatch Dashboard</h1>
+            <p>Monitoreo de cambios en páginas web</p>
+        </header>
+
+        <div class="card auth-section">
+            <input type="email" id="email" placeholder="Correo electrónico" value="test@example.com">
+            <input type="password" id="password" placeholder="Contraseña" value="testpass">
+            <button onclick="login()">Iniciar sesión</button>
+            <button onclick="logout()" class="hidden" id="logoutBtn">Cerrar sesión</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <div class="card">
+                <h2>Tus URLs monitoreadas</h2>
+                <ul class="url-list" id="urlList"></ul>
+            </div>
+            <div class="card">
+                <h3>Agregar nueva URL</h3>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <input type="text" id="newUrl" placeholder="https://ejemplo.com">
+                    <input type="text" id="newName" placeholder="Nombre (opcional)">
+                    <button onclick="addUrl()">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://192.168.1.81:8000';
+        let token = localStorage.getItem('token');
+
+        function show(elementId) {
+            document.getElementById(elementId).classList.remove('hidden');
+        }
+        function hide(elementId) {
+            document.getElementById(elementId).classList.add('hidden');
+        }
+
+        function updateUI() {
+            if (token) {
+                hide('auth-section');
+                show('dashboard');
+                show('logoutBtn');
+                loadUrls();
+            } else {
+                show('auth-section');
+                hide('dashboard');
+                hide('logoutBtn');
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const response = await fetch(`${API_BASE}/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            });
+            if (response.ok) {
+                const data = await response.json();
+                token = data.access_token;
+                localStorage.setItem('token', token);
+                updateUI();
+            } else {
+                alert('Error de inicio de sesión');
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('token');
+            updateUI();
+        }
+
+        async function loadUrls() {
+            const response = await fetch(`${API_BASE}/urls/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const urls = await response.json();
+                const list = document.getElementById('urlList');
+                list.innerHTML = '';
+                urls.forEach(url => {
+                    const li = document.createElement('li');
+                    li.className = 'url-item';
+                    li.innerHTML = `
+                        <div>
+                            <strong>${url.name || 'Sin nombre'}</strong><br>
+                            <small>${url.url}</small><br>
+                            <span class="status ${url.last_checked ? 'status-ok' : 'status-error'}">
+                                ${url.last_checked ? 'Monitoreado' : 'Nunca'}
+                            </span>
+                        </div>
+                        <div>
+                            <button onclick="deleteUrl(${url.id})">Eliminar</button>
+                        </div>
+                    `;
+                    list.appendChild(li);
+                });
+            }
+        }
+
+        async function addUrl() {
+            const url = document.getElementById('newUrl').value;
+            const name = document.getElementById('newName').value;
+            const response = await fetch(`${API_BASE}/urls/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    url,
+                    name,
+                    check_interval_minutes: 60
+                })
+            });
+            if (response.ok) {
+                document.getElementById('newUrl').value = '';
+                document.getElementById('newName').value = '';
+                loadUrls();
+            } else {
+                alert('Error al agregar URL');
+            }
+        }
+
+        async function deleteUrl(id) {
+            if (!confirm('¿Eliminar esta URL?')) return;
+            const response = await fetch(`${API_BASE}/urls/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                loadUrls();
+            }
+        }
+
+        // Inicializar
+        updateUI();
+    </script>
+</body>
+</html>
