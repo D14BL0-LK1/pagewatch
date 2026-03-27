@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PageWatch Dashboard (Demo)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f5f7fa; color: #333; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .subtitle { opacity: 0.9; font-size: 1.1rem; }
+        .card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .card h2 { color: #444; margin-bottom: 1rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555; }
+        input, select { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        button { background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #5a67d8; }
+        .btn-secondary { background: #48bb78; }
+        .btn-secondary:hover { background: #38a169; }
+        .btn-danger { background: #f56565; }
+        .btn-danger:hover { background: #e53e3e; }
+        .url-list { list-style: none; }
+        .url-item { background: #f8f9fa; border-left: 4px solid #667eea; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+        .url-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .url-name { font-weight: bold; font-size: 1.2rem; color: #333; }
+        .url-meta { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+        .url-actions { margin-top: 0.5rem; }
+        .url-actions button { margin-right: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.9rem; }
+        .alert { background: #fed7d7; color: #9b2c2c; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        .success { background: #c6f6d5; color: #22543d; }
+        .hidden { display: none; }
+        .flex { display: flex; gap: 1rem; }
+        .flex-1 { flex: 1; }
+        .login-form { max-width: 400px; margin: 3rem auto; }
+        .login-form input { margin-bottom: 1rem; }
+        .logout { float: right; background: #718096; }
+        .logout:hover { background: #4a5568; }
+        .price-tag { background: #c6f6d5; color: #22543d; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold; }
+        .selector-tag { background: #bee3f8; color: #2c5282; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: monospace; }
+        .demo-note { background: #e9d8fd; color: #553c9a; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #9f7aea; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 PageWatch Dashboard (Demo)</h1>
+            <p class="subtitle">Interfaz de demostración – Backend no accesible desde esta red</p>
+            <button class="logout" onclick="logout()">Cerrar sesión demo</button>
+        </header>
+
+        <div class="demo-note">
+            <strong>⚠️ Esta es una versión de demostración.</strong> El backend real está ejecutándose en tu PC en casa (192.168.1.81:8000) pero no es accesible desde internet. Mañana configuraremos un túnel público (Cloudflare Tunnel) para exponerlo.
+        </div>
+
+        <div id="loginSection" class="card login-form">
+            <h2>Iniciar sesión (demo)</h2>
+            <p>Usa credenciales de prueba:</p>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" value="test@example.com" readonly>
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="loginPassword" value="testpass" readonly>
+            </div>
+            <button onclick="loginDemo()">Ingresar (demo)</button>
+            <div id="loginError" class="alert hidden"></div>
+        </div>
+
+        <div id="dashboardSection" class="hidden">
+            <div class="card">
+                <h2>➕ Agregar nueva URL para monitorear (demo)</h2>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" id="newUrl" placeholder="https://ejemplo.com/producto" value="https://www.mercadolibre.com.mx/apple-iphone-15-pro-max-256-gb-negro/p/MLM37046667">
+                </div>
+                <div class="form-group">
+                    <label>Nombre (opcional)</label>
+                    <input type="text" id="newName" placeholder="Mi producto" value="iPhone 15 ML">
+                </div>
+                <div class="flex">
+                    <div class="form-group flex-1">
+                        <label>Selector CSS (para extraer precio/texto específico)</label>
+                        <input type="text" id="newSelector" placeholder=".price, #precio, h1" value=".andes-money-amount__fraction">
+                        <small>Ej: .price para extraer precio</small>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>Método de scraping</label>
+                        <select id="newMethod">
+                            <option value="basic">Basic (HTML simple)</option>
+                            <option value="selenium" selected>Selenium (JavaScript)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Intervalo de verificación (minutos)</label>
+                    <input type="number" id="newInterval" value="60" min="1">
+                </div>
+                <button onclick="addUrlDemo()">Agregar URL (demo)</button>
+                <div id="addUrlMessage" class="success">
+                    ✅ URL agregada (simulación). En producción, se guardaría en la base de datos.
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📋 URLs monitoreadas (datos de ejemplo)</h2>
+                <div id="urlsContainer">
+                    <!-- Datos simulados -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Configuración</h2>
+                <p>Tu ID de Telegram: <strong id="telegramId">1692047968</strong></p>
+                <p>Para recibir alertas, envía <code>/start</code> al bot <a href="https://t.me/pagewatch_monitor_bot" target="_blank">@pagewatch_monitor_bot</a></p>
+                <p><strong>Alertas reales:</strong> El scheduler está ejecutándose en tu PC en casa y te envía alertas a Telegram cuando detecta cambios.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo
+        const demoUrls = [
+            {
+                id: 1,
+                url: 'http://192.168.1.81:8000/test-product',
+                name: 'Laptop Test',
+                check_interval_minutes: 30,
+                selector: '.price',
+                scraping_method: 'basic',
+                last_checked: '2026-03-26T22:08:35',
+                last_change_detected: '2026-03-26T22:08:35'
+            },
+            {
+                id: 2,
+                url: 'https://www.mercadolibre.com.mx/apple-iphone-15-pro-max-256-gb-negro/p/MLM37046667',
+                name: 'iPhone 15 ML',
+                check_interval_minutes: 120,
+                selector: '.andes-money-amount__fraction',
+                scraping_method: 'selenium',
+                last_checked: '2026-03-26T22:08:35',
+                last_change_detected: null
+            },
+            {
+                id: 3,
+                url: 'http://httpbin.org/html',
+                name: 'HTTPBin Test',
+                check_interval_minutes: 60,
+                selector: null,
+                scraping_method: 'basic',
+                last_checked: '2026-03-26T22:08:35',
+                last_change_detected: null
+            }
+        ];
+
+        function showSection(id) {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function loginDemo() {
+            // Simular login exitoso
+            showSection('dashboardSection');
+            loadDemoUrls();
+        }
+
+        function logout() {
+            showSection('loginSection');
+        }
+
+        function loadDemoUrls() {
+            const container = document.getElementById('urlsContainer');
+            let html = '<ul class="url-list">';
+            demoUrls.forEach(url => {
+                const lastChecked = url.last_checked ? new Date(url.last_checked).toLocaleString() : 'Nunca';
+                const lastChange = url.last_change_detected ? new Date(url.last_change_detected).toLocaleString() : 'Sin cambios';
+                
+                html += `
+                <li class="url-item">
+                    <div class="url-header">
+                        <div class="url-name">${url.name || url.url}</div>
+                        <div class="url-meta">Cada ${url.check_interval_minutes} min</div>
+                    </div>
+                    <div class="url-meta"><a href="${url.url}" target="_blank">${url.url}</a></div>
+                    ${url.selector ? `<div class="url-meta">Selector: <span class="selector-tag">${url.selector}</span> Método: ${url.scraping_method || 'basic'}</div>` : ''}
+                    <div class="url-meta">Última verificación: ${lastChecked}</div>
+                    <div class="url-meta">Último cambio: ${lastChange}</div>
+                    <div class="url-actions">
+                        <button class="btn-secondary" onclick="alert('En producción, esto ejecutaría el scraper ahora.')">Probar ahora</button>
+                        <button class="btn-danger" onclick="alert('Endpoint DELETE no implementado aún.')">Eliminar</button>
+                    </div>
+                </li>`;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        function addUrlDemo() {
+            alert('En producción, esta URL se guardaría en la base de datos y el scheduler la monitorearía cada X minutos.');
+        }
+
+        // Inicialización
+        showSection('loginSection');
+    </script>
+</body>
+</html>
