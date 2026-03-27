@@ -5,168 +5,301 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PageWatch Dashboard</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #f9fafb; color: #111827; line-height: 1.6; padding: 2rem; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 2rem; }
-        h1 { color: #3b82f6; }
-        .card { background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .auth-section { display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; }
-        input { padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #d1d5db; flex: 1; }
-        button { padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
-        button:hover { background: #2563eb; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f5f7fa; color: #333; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .subtitle { opacity: 0.9; font-size: 1.1rem; }
+        .card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .card h2 { color: #444; margin-bottom: 1rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555; }
+        input, select { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        button { background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #5a67d8; }
+        .btn-secondary { background: #48bb78; }
+        .btn-secondary:hover { background: #38a169; }
+        .btn-danger { background: #f56565; }
+        .btn-danger:hover { background: #e53e3e; }
         .url-list { list-style: none; }
-        .url-item { padding: 1rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; }
-        .url-item:last-child { border-bottom: none; }
-        .status { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; }
-        .status-ok { background: #d1fae5; color: #065f46; }
-        .status-error { background: #fee2e2; color: #991b1b; }
+        .url-item { background: #f8f9fa; border-left: 4px solid #667eea; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+        .url-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .url-name { font-weight: bold; font-size: 1.2rem; color: #333; }
+        .url-meta { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+        .url-actions { margin-top: 0.5rem; }
+        .url-actions button { margin-right: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.9rem; }
+        .alert { background: #fed7d7; color: #9b2c2c; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        .success { background: #c6f6d5; color: #22543d; }
         .hidden { display: none; }
+        .flex { display: flex; gap: 1rem; }
+        .flex-1 { flex: 1; }
+        .login-form { max-width: 400px; margin: 3rem auto; }
+        .login-form input { margin-bottom: 1rem; }
+        .logout { float: right; background: #718096; }
+        .logout:hover { background: #4a5568; }
+        .price-tag { background: #c6f6d5; color: #22543d; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold; }
+        .selector-tag { background: #bee3f8; color: #2c5282; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: monospace; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>PageWatch Dashboard</h1>
-            <p>Monitoreo de cambios en páginas web</p>
+            <h1>📊 PageWatch Dashboard</h1>
+            <p class="subtitle">Monitorea cambios en páginas web y recibe alertas en Telegram</p>
+            <button class="logout" onclick="logout()">Cerrar sesión</button>
         </header>
 
-        <div class="card auth-section">
-            <input type="email" id="email" placeholder="Correo electrónico" value="test@example.com">
-            <input type="password" id="password" placeholder="Contraseña" value="testpass">
-            <button onclick="login()">Iniciar sesión</button>
-            <button onclick="logout()" class="hidden" id="logoutBtn">Cerrar sesión</button>
+        <div id="loginSection" class="card login-form">
+            <h2>Iniciar sesión</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="test@example.com">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="loginPassword" placeholder="testpass">
+            </div>
+            <button onclick="login()">Ingresar</button>
+            <div id="loginError" class="alert hidden"></div>
         </div>
 
-        <div id="dashboard" class="hidden">
+        <div id="dashboardSection" class="hidden">
             <div class="card">
-                <h2>Tus URLs monitoreadas</h2>
-                <ul class="url-list" id="urlList"></ul>
-            </div>
-            <div class="card">
-                <h3>Agregar nueva URL</h3>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <input type="text" id="newUrl" placeholder="https://ejemplo.com">
-                    <input type="text" id="newName" placeholder="Nombre (opcional)">
-                    <button onclick="addUrl()">Agregar</button>
+                <h2>➕ Agregar nueva URL para monitorear</h2>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" id="newUrl" placeholder="https://ejemplo.com/producto">
                 </div>
+                <div class="form-group">
+                    <label>Nombre (opcional)</label>
+                    <input type="text" id="newName" placeholder="Mi producto">
+                </div>
+                <div class="flex">
+                    <div class="form-group flex-1">
+                        <label>Selector CSS (para extraer precio/texto específico)</label>
+                        <input type="text" id="newSelector" placeholder=".price, #precio, h1">
+                        <small>Ej: .price para extraer precio</small>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>Método de scraping</label>
+                        <select id="newMethod">
+                            <option value="basic">Basic (HTML simple)</option>
+                            <option value="selenium">Selenium (JavaScript)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Intervalo de verificación (minutos)</label>
+                    <input type="number" id="newInterval" value="60" min="1">
+                </div>
+                <button onclick="addUrl()">Agregar URL</button>
+                <div id="addUrlMessage" class="hidden"></div>
+            </div>
+
+            <div class="card">
+                <h2>📋 URLs monitoreadas</h2>
+                <div id="urlsContainer">
+                    <p>Cargando...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Configuración</h2>
+                <p>Tu ID de Telegram: <strong id="telegramId">No configurado</strong></p>
+                <p>Para recibir alertas, envía <code>/start</code> al bot <a href="https://t.me/pagewatch_monitor_bot" target="_blank">@pagewatch_monitor_bot</a></p>
             </div>
         </div>
     </div>
 
     <script>
         const API_BASE = 'http://192.168.1.81:8000';
-        let token = localStorage.getItem('token');
+        let token = localStorage.getItem('pagewatch_token');
+        let userEmail = localStorage.getItem('pagewatch_email');
 
-        function show(elementId) {
-            document.getElementById(elementId).classList.remove('hidden');
-        }
-        function hide(elementId) {
-            document.getElementById(elementId).classList.add('hidden');
-        }
-
-        function updateUI() {
-            if (token) {
-                hide('auth-section');
-                show('dashboard');
-                show('logoutBtn');
-                loadUrls();
-            } else {
-                show('auth-section');
-                hide('dashboard');
-                hide('logoutBtn');
-            }
+        function showSection(id) {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
         }
 
-        async function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const response = await fetch(`${API_BASE}/token`, {
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+            
+            fetch(`${API_BASE}/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.access_token) {
+                    token = data.access_token;
+                    userEmail = email;
+                    localStorage.setItem('pagewatch_token', token);
+                    localStorage.setItem('pagewatch_email', email);
+                    showSection('dashboardSection');
+                    loadUrls();
+                    loadUserInfo();
+                } else {
+                    showError('loginError', 'Credenciales incorrectas');
+                }
+            })
+            .catch(err => {
+                showError('loginError', 'Error de conexión');
+                console.error(err);
             });
-            if (response.ok) {
-                const data = await response.json();
-                token = data.access_token;
-                localStorage.setItem('token', token);
-                updateUI();
-            } else {
-                alert('Error de inicio de sesión');
-            }
         }
 
         function logout() {
+            localStorage.removeItem('pagewatch_token');
+            localStorage.removeItem('pagewatch_email');
             token = null;
-            localStorage.removeItem('token');
-            updateUI();
+            userEmail = null;
+            showSection('loginSection');
         }
 
-        async function loadUrls() {
-            const response = await fetch(`${API_BASE}/urls/`, {
+        function loadUrls() {
+            fetch(`${API_BASE}/urls/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const urls = await response.json();
-                const list = document.getElementById('urlList');
-                list.innerHTML = '';
+            })
+            .then(res => res.json())
+            .then(urls => {
+                const container = document.getElementById('urlsContainer');
+                if (urls.length === 0) {
+                    container.innerHTML = '<p>No hay URLs monitoreadas aún.</p>';
+                    return;
+                }
+                
+                let html = '<ul class="url-list">';
                 urls.forEach(url => {
-                    const li = document.createElement('li');
-                    li.className = 'url-item';
-                    li.innerHTML = `
-                        <div>
-                            <strong>${url.name || 'Sin nombre'}</strong><br>
-                            <small>${url.url}</small><br>
-                            <span class="status ${url.last_checked ? 'status-ok' : 'status-error'}">
-                                ${url.last_checked ? 'Monitoreado' : 'Nunca'}
-                            </span>
+                    const lastChecked = url.last_checked ? new Date(url.last_checked).toLocaleString() : 'Nunca';
+                    const lastChange = url.last_change_detected ? new Date(url.last_change_detected).toLocaleString() : 'Sin cambios';
+                    
+                    html += `
+                    <li class="url-item">
+                        <div class="url-header">
+                            <div class="url-name">${url.name || url.url}</div>
+                            <div class="url-meta">Cada ${url.check_interval_minutes} min</div>
                         </div>
-                        <div>
-                            <button onclick="deleteUrl(${url.id})">Eliminar</button>
+                        <div class="url-meta"><a href="${url.url}" target="_blank">${url.url}</a></div>
+                        ${url.selector ? `<div class="url-meta">Selector: <span class="selector-tag">${url.selector}</span> Método: ${url.scraping_method || 'basic'}</div>` : ''}
+                        <div class="url-meta">Última verificación: ${lastChecked}</div>
+                        <div class="url-meta">Último cambio: ${lastChange}</div>
+                        <div class="url-actions">
+                            <button class="btn-secondary" onclick="testUrl(${url.id})">Probar ahora</button>
+                            <button class="btn-danger" onclick="deleteUrl(${url.id})">Eliminar</button>
                         </div>
-                    `;
-                    list.appendChild(li);
+                    </li>`;
                 });
-            }
+                html += '</ul>';
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('urlsContainer').innerHTML = '<p class="alert">Error cargando URLs</p>';
+            });
         }
 
-        async function addUrl() {
+        function loadUserInfo() {
+            fetch(`${API_BASE}/users/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(user => {
+                if (user.telegram_chat_id) {
+                    document.getElementById('telegramId').textContent = user.telegram_chat_id;
+                }
+            })
+            .catch(console.error);
+        }
+
+        function addUrl() {
             const url = document.getElementById('newUrl').value;
             const name = document.getElementById('newName').value;
-            const response = await fetch(`${API_BASE}/urls/`, {
+            const selector = document.getElementById('newSelector').value;
+            const method = document.getElementById('newMethod').value;
+            const interval = parseInt(document.getElementById('newInterval').value);
+            
+            if (!url) {
+                showMessage('addUrlMessage', 'URL es requerida', 'alert');
+                return;
+            }
+            
+            const data = {
+                url: url,
+                name: name || null,
+                check_interval_minutes: interval,
+                selector: selector || null,
+                scraping_method: method
+            };
+            
+            fetch(`${API_BASE}/urls/`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    url,
-                    name,
-                    check_interval_minutes: 60
-                })
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(newUrl => {
+                if (newUrl.id) {
+                    showMessage('addUrlMessage', 'URL agregada exitosamente', 'success');
+                    document.getElementById('newUrl').value = '';
+                    document.getElementById('newName').value = '';
+                    loadUrls();
+                } else {
+                    showMessage('addUrlMessage', 'Error: ' + (newUrl.detail || 'Desconocido'), 'alert');
+                }
+            })
+            .catch(err => {
+                showMessage('addUrlMessage', 'Error de conexión', 'alert');
+                console.error(err);
             });
-            if (response.ok) {
-                document.getElementById('newUrl').value = '';
-                document.getElementById('newName').value = '';
-                loadUrls();
-            } else {
-                alert('Error al agregar URL');
+        }
+
+        function testUrl(urlId) {
+            alert('Función de prueba en desarrollo. El scheduler verificará automáticamente.');
+        }
+
+        function deleteUrl(urlId) {
+            if (confirm('¿Eliminar esta URL?')) {
+                // Nota: Necesitaríamos endpoint DELETE /urls/{id}
+                alert('Endpoint DELETE no implementado aún. Eliminar manualmente desde la base de datos.');
             }
         }
 
-        async function deleteUrl(id) {
-            if (!confirm('¿Eliminar esta URL?')) return;
-            const response = await fetch(`${API_BASE}/urls/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                loadUrls();
-            }
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.remove('hidden');
+            el.classList.remove('success');
+            el.classList.add('alert');
         }
 
-        // Inicializar
-        updateUI();
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.remove('hidden');
+            el.classList.remove('alert', 'success');
+            el.classList.add(type);
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        }
+
+        // Inicialización
+        if (token && userEmail) {
+            showSection('dashboardSection');
+            loadUrls();
+            loadUserInfo();
+        } else {
+            showSection('loginSection');
+        }
     </script>
 </body>
 </html>
